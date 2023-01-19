@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -487,9 +488,13 @@ class BaseTrainer:
     def save_metrics(self, metrics):
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 1  # number of cols
-        s = '' if self.csv.exists() else (('%23s,' * n % tuple(['epoch'] + keys)).rstrip(',') + '\n')  # header
-        with open(self.csv, 'a') as f:
-            f.write(s + ('%23.5g,' * n % tuple([self.epoch] + vals)).rstrip(',') + '\n')
+        # s = '' if self.csv.exists() else (('%23s,' * n % tuple(['epoch'] + keys)).rstrip(',') + '\n')  # header
+        # with open(self.csv, 'a') as f:
+        #     f.write(s + ('%23.5g,' * n % tuple([self.epoch] + vals)).rstrip(',') + '\n')
+        s = [] if self.csv.exists() else list(keys)  # header
+        metrics_csv = pd.read_csv(evolve_csv) if not s else pd.DataFrame(columns=s)
+        metrics_csv.loc[len(metrics_csv)] = vals
+        metrics_csv.to_csv(self.csv, index=False, float_format='%23.5g')
 
     def plot_metrics(self):
         pass
